@@ -7,35 +7,30 @@ datasource db {
   provider = "postgresql"
 }
 
-// Dados do Usuário (Identidade)
 model User {
-  id        String   @id @default(uuid())
-  fullName  String
-  document  String   @unique // CPF ou CNPJ (apenas números)
-  email     String   @unique
-  password  String   // Hash da senha
-  type      UserType @default(COMMON)
-  
-  account   Account? // Relação 1-para-1 com a conta
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String
+  accounts  Account[]
+  createdAt DateTime  @default(now())
 }
 
-// A carteira do usuário (Ledger)
 model Account {
-  id        String        @id @default(uuid())
-  userId    String        @unique
-  user      User          @relation(fields: [userId], references: [id])
+  id              String        @id @default(uuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
   
-  balance   Int           @default(0) // Em centavos!
-  entries   LedgerEntry[]
+  document        String        @unique // CPF ou o CNPJ
+  fullName        String        // Nome da Pessoa ou Razão Social
+  type            AccountType   @default(COMMON)
   
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  balance         Int           @default(0)
+  entries         LedgerEntry[]
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
-// A intenção de transferência
 model Transaction {
   id              String            @id @default(uuid())
   idempotencyKey  String?           @unique
@@ -47,7 +42,6 @@ model Transaction {
   updatedAt       DateTime          @updatedAt
 }
 
-// O Livro Razão - Onde a mágica financeira acontece
 model LedgerEntry {
   id            String        @id @default(uuid())
   accountId     String
@@ -63,9 +57,9 @@ model LedgerEntry {
   @@index([accountId])
 }
 
-enum UserType {
-  COMMON    // Pessoa Física (Pode enviar e receber)
-  MERCHANT  // Lojista (Só pode receber)
+enum AccountType {
+  COMMON    // Pessoa Física (CPF)
+  MERCHANT  // Lojista/Empresa (CNPJ)
 }
 
 enum TransactionStatus {
