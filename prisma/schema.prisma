@@ -1,0 +1,80 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Dados do Usuário (Identidade)
+model User {
+  id        String   @id @default(uuid())
+  fullName  String
+  document  String   @unique // CPF ou CNPJ (apenas números)
+  email     String   @unique
+  password  String   // Hash da senha
+  type      UserType @default(COMMON)
+  
+  account   Account? // Relação 1-para-1 com a conta
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// A carteira do usuário (Ledger)
+model Account {
+  id        String        @id @default(uuid())
+  userId    String        @unique
+  user      User          @relation(fields: [userId], references: [id])
+  
+  balance   Int           @default(0) // Em centavos!
+  entries   LedgerEntry[]
+  
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+// A intenção de transferência
+model Transaction {
+  id              String            @id @default(uuid())
+  idempotencyKey  String?           @unique
+  amount          Int               // Em centavos
+  status          TransactionStatus @default(PENDING)
+  entries         LedgerEntry[]
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+// O Livro Razão - Onde a mágica financeira acontece
+model LedgerEntry {
+  id            String        @id @default(uuid())
+  accountId     String
+  account       Account       @relation(fields: [accountId], references: [id])
+  transactionId String
+  transaction   Transaction   @relation(fields: [transactionId], references: [id])
+  
+  amount        Int
+  operation     OperationType
+  
+  createdAt     DateTime      @default(now())
+
+  @@index([accountId])
+}
+
+enum UserType {
+  COMMON    // Pessoa Física (Pode enviar e receber)
+  MERCHANT  // Lojista (Só pode receber)
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum OperationType {
+  DEBIT
+  CREDIT
+}
