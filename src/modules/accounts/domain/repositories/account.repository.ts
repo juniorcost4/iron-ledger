@@ -5,6 +5,4 @@ export interface IAccountRepository {
   findById(id: string): Promise<Account | null>;
   findByDocument(document: string): Promise<Account | null>;
   findAllByUserId(userId: string): Promise<Account[]>;
-
-  updateBalance(accountId: string, amount: number): Promise<void>;
 }

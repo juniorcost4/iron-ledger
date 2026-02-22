@@ -54,11 +54,4 @@ export class PrismaAccountRepository implements IAccountRepository {
     });
     return accounts.map((acc) => this.toDomain(acc)) as Account[];
   }
-
-  async updateBalance(accountId: string, amount: number): Promise<void> {
-    await this.prisma.account.update({
-      where: { id: accountId },
-      data: { balance: { increment: amount } },
-    });
-  }
 }

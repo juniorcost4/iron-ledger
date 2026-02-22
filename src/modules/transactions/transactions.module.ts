@@ -5,6 +5,8 @@ import { AccountsModule } from '../accounts/accounts.module';
 import { PrismaAccountRepository } from '../accounts/infra/database/prisma-account.repository';
 import { PrismaTransactionRepository } from './infra/database/prisma-transaction.repository';
 import { TransferUseCase } from './application/use-cases/transfer.use-case';
+import { GetStatementUseCase } from './application/use-cases/get-statement.use-case';
+import { PrismaLedgerRepository } from './infra/database/prisma-ledger.repository';
 
 @Module({
   imports: [AccountsModule],
@@ -12,6 +14,7 @@ import { TransferUseCase } from './application/use-cases/transfer.use-case';
   providers: [
     DepositUseCase,
     TransferUseCase,
+    GetStatementUseCase,
     {
       provide: 'IAccountRepository',
       useClass: PrismaAccountRepository,
@@ -19,6 +22,10 @@ import { TransferUseCase } from './application/use-cases/transfer.use-case';
     {
       provide: 'ITransactionRepository',
       useClass: PrismaTransactionRepository,
+    },
+    {
+      provide: 'ILedgerRepository',
+      useClass: PrismaLedgerRepository,
     },
   ],
 })
