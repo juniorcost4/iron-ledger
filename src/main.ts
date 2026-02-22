@@ -3,6 +3,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -14,6 +15,24 @@ async function bootstrap() {
     AppModule,
     new FastifyAdapter(),
   );
+
+  const config = new DocumentBuilder()
+    .setTitle('Iron Ledger API')
+    .setDescription(
+      'API do Iron Ledger - sistema de ledger para transações financeiras (depósitos, transferências e extratos).',
+    )
+    .setVersion('1.0')
+    .addTag('users', 'Cadastro e consulta de usuários')
+    .addTag('accounts', 'Abertura e gestão de contas')
+    .addTag('transactions', 'Depósitos, transferências e extratos')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  });
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 8000;
