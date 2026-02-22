@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { ITransactionRepository } from '../../domain/repositories/transaction.repository';
-import { IAccountRepository } from 'src/modules/accounts/domain/repositories/account.repository';
+import { IAccountRepository } from '../../../../modules/accounts/domain/repositories/account.repository';
 
 export interface TransferDto {
   payerId: string;
@@ -22,10 +22,11 @@ export class TransferUseCase {
     private readonly transactionRepository: ITransactionRepository,
   ) {}
 
-  async execute(data: TransferDto) {
+  async execute(data: TransferDto & { idempotencyKey: string }) {
     const payerAccount = await this.accountRepository.findById(data.payerId);
-    if (!payerAccount)
+    if (!payerAccount) {
       throw new BadRequestException('Conta pagadora não encontrada');
+    }
 
     if (!payerAccount.canSendMoney()) {
       throw new ForbiddenException(
@@ -38,13 +39,15 @@ export class TransferUseCase {
     }
 
     const isAuthorized = await this.mockAuthorize();
-    if (!isAuthorized)
+    if (!isAuthorized) {
       throw new ForbiddenException('Transferência não autorizada externamente');
+    }
 
     await this.transactionRepository.transfer({
       senderId: data.payerId,
       receiverId: data.payeeId,
       amount: data.value,
+      idempotencyKey: data.idempotencyKey,
     });
 
     return { message: 'Transferência concluída com sucesso!' };

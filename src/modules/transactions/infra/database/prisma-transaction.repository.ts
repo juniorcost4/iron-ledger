@@ -6,13 +6,18 @@ import { ITransactionRepository } from '../../domain/repositories/transaction.re
 export class PrismaTransactionRepository implements ITransactionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async deposit(data: { accountId: string; amount: number }): Promise<void> {
+  async deposit(data: {
+    accountId: string;
+    amount: number;
+    idempotencyKey?: string;
+  }): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       // 1. Criar o registro mestre da Transação para o Depósito
       const transaction = await tx.transaction.create({
         data: {
           amount: data.amount,
           status: 'COMPLETED',
+          idempotencyKey: data.idempotencyKey,
         },
       });
 
@@ -38,6 +43,7 @@ export class PrismaTransactionRepository implements ITransactionRepository {
     senderId: string;
     receiverId: string;
     amount: number;
+    idempotencyKey?: string;
   }): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       // 1. Criar o registro mestre da Transação
@@ -45,6 +51,7 @@ export class PrismaTransactionRepository implements ITransactionRepository {
         data: {
           amount: data.amount,
           status: 'COMPLETED',
+          idempotencyKey: data.idempotencyKey,
         },
       });
 

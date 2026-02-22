@@ -7,9 +7,10 @@ import { PrismaTransactionRepository } from './infra/database/prisma-transaction
 import { TransferUseCase } from './application/use-cases/transfer.use-case';
 import { GetStatementUseCase } from './application/use-cases/get-statement.use-case';
 import { PrismaLedgerRepository } from './infra/database/prisma-ledger.repository';
+import { RedisModule } from '../../infra/redis/redis.module';
 
 @Module({
-  imports: [AccountsModule],
+  imports: [AccountsModule, RedisModule],
   controllers: [TransactionsController],
   providers: [
     DepositUseCase,
