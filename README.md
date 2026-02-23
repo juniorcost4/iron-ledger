@@ -214,4 +214,4 @@ O modelo é definido em `prisma/schema.prisma`. Resumo das entidades e relaciona
 
 ## Licença
 
-UNLICENSED (projeto privado).
+Apache 2.0
