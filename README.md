@@ -1,98 +1,217 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Iron Ledger
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API de ledger financeiro para transações: cadastro de usuários, abertura de contas, depósitos, transferências e extratos. Desenvolvida com **NestJS**, **Prisma**, **PostgreSQL** e **Redis**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Pré-requisitos
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Antes de rodar o projeto, você precisa ter instalado:
 
-## Project setup
+| Requisito    | Versão / Observação |
+|-------------|----------------------|
+| **Node.js** | >= 24 (recomendado usar o `.nvmrc`: `nvm use`) |
+| **pnpm**    | Gerenciador de pacotes do projeto |
+| **PostgreSQL** | 15+ (pode usar via Docker) |
+| **Redis**   | 7+ (usado para idempotência em depósito/transferência; pode usar via Docker) |
+| **Docker**  | Opcional, para subir PostgreSQL e Redis com `docker-compose` |
+
+---
+
+## Como executar
+
+### 1. Clonar e instalar dependências
 
 ```bash
-$ pnpm install
+git clone <url-do-repositorio>
+cd iron-ledger
+pnpm install
 ```
 
-## Compile and run the project
+### 2. Variáveis de ambiente
+
+Copie o arquivo de exemplo e ajuste se necessário:
 
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+cp .env.example .env
 ```
 
-## Run tests
+Exemplo de `.env`:
+
+```env
+PORT=8000
+DATABASE_URL="postgresql://root:rootpassword@localhost:5432/ironledger?schema=public"
+
+# Opcional (padrão: localhost:6379)
+# REDIS_HOST=localhost
+# REDIS_PORT=6379
+```
+
+### 3. Subir PostgreSQL e Redis (Docker)
+
+Se não tiver PostgreSQL e Redis rodando localmente:
 
 ```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+docker-compose up -d
 ```
 
-## Deployment
+Isso sobe:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+- **PostgreSQL** em `localhost:5432` (usuário: `root`, senha: `rootpassword`, banco: `ironledger`)
+- **Redis** em `localhost:6379`
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 4. Rodar as migrações
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+pnpm prisma migrate deploy
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Para desenvolvimento, se precisar aplicar migrações pendentes:
 
-## Resources
+```bash
+pnpm prisma migrate dev
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+### 5. Iniciar a aplicação
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+# Desenvolvimento (watch)
+pnpm start:dev
 
-## Support
+# Produção (build + run)
+pnpm build
+pnpm start:prod
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+A API estará em **http://localhost:8000** (ou na porta definida em `PORT`).
 
-## Stay in touch
+### 6. Documentação da API (Swagger)
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Com a aplicação rodando, acesse:
 
-## License
+- **http://localhost:8000/api/docs**
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+---
+
+## Estrutura do projeto
+
+O projeto segue uma organização por **módulos** e camadas (inspirada em Clean Architecture):
+
+```
+src/
+├── main.ts                 # Bootstrap da aplicação (Fastify + Swagger)
+├── app.module.ts           # Módulo raiz
+│
+├── infra/                  # Infraestrutura compartilhada
+│   ├── database/prisma/    # Prisma (PostgreSQL)
+│   ├── redis/              # Cliente Redis (idempotência)
+│   └── common/interceptors # Ex.: IdempotencyInterceptor
+│
+└── modules/
+    ├── users/              # Usuários
+    │   ├── domain/         # Entidades e contratos (repositórios)
+    │   ├── application/    # Use cases (create-user, list-users-accounts)
+    │   └── infra/          # HTTP (controllers, DTOs), DB (Prisma)
+    │
+    ├── accounts/           # Contas
+    │   ├── domain/
+    │   ├── application/    # open-account
+    │   └── infra/
+    │
+    └── transactions/      # Transações
+        ├── domain/
+        ├── application/    # deposit, transfer, get-statement
+        └── infra/
+```
+
+Cada módulo contém:
+
+- **domain**: entidades e interfaces de repositório.
+- **application**: casos de uso (regras de negócio).
+- **infra**: implementações (HTTP com Nest, repositórios Prisma).
+
+---
+
+## Como o projeto funciona
+
+### Fluxo geral
+
+1. **Usuários** – Cadastro com e-mail e senha (`POST /users`).
+2. **Contas** – Um usuário pode ter várias contas (`POST /accounts`). Cada conta tem documento (CPF/CNPJ), nome e tipo (COMMON ou MERCHANT).
+3. **Transações** – Operações financeiras:
+   - **Depósito** – Credita valor em uma conta (`POST /transactions/deposit`).
+   - **Transferência** – Debita de uma conta e credita em outra (`POST /transactions/transfer`).
+   - **Extrato** – Lista movimentações de uma conta (`GET /transactions/statement/:accountId`).
+
+Depósitos e transferências usam o header **`x-idempotency-key`** para evitar processar a mesma operação duas vezes; o estado de idempotência fica no **Redis**.
+
+### Valores
+
+Os valores são armazenados em **centavos** (inteiros) para evitar problemas de arredondamento.
+
+---
+
+## Relação das tabelas (banco de dados)
+
+O modelo é definido em `prisma/schema.prisma`. Resumo das entidades e relacionamentos:
+
+```
+┌─────────────┐       ┌─────────────┐
+│    User     │       │  Account    │
+├─────────────┤       ├─────────────┤
+│ id (PK)     │──1:N──│ id (PK)     │
+│ email       │       │ userId (FK) │
+│ password    │       │ document    │
+│ createdAt   │       │ fullName    │
+└─────────────┘       │ type        │
+                      │ balance     │
+                      │ createdAt   │
+                      │ updatedAt   │
+                      └──────┬──────┘
+                             │
+                             │ 1:N
+                             ▼
+                      ┌─────────────┐       ┌─────────────────┐
+                      │ LedgerEntry │       │  Transaction    │
+                      ├─────────────┤       ├─────────────────┤
+                      │ id (PK)     │   N:1 │ id (PK)         │
+                      │ accountId   │───────│ idempotencyKey  │
+                      │ transactionId│──────│ amount          │
+                      │ amount      │       │ status          │
+                      │ operation   │       │ createdAt       │
+                      │ createdAt   │       │ updatedAt       │
+                      └─────────────┘       └─────────────────┘
+```
+
+- **User** → **Account**: um usuário pode ter várias contas (`userId` em `Account`).
+- **Account** → **LedgerEntry**: cada movimento (débito/crédito) é uma entrada no ledger vinculada a uma conta.
+- **Transaction** → **LedgerEntry**: uma transação (depósito ou transferência) gera uma ou mais entradas (ex.: uma transferência gera débito em uma conta e crédito em outra).
+- **Account.balance**: saldo atual; as entradas em **LedgerEntry** são o histórico (extrato).
+
+### Enums
+
+- **AccountType**: `COMMON` (pessoa física), `MERCHANT` (pessoa jurídica).
+- **TransactionStatus**: `PENDING`, `COMPLETED`, `FAILED`.
+- **OperationType**: `DEBIT`, `CREDIT`.
+
+---
+
+## Scripts úteis
+
+| Comando          | Descrição                    |
+|------------------|------------------------------|
+| `pnpm start:dev` | Desenvolvimento com watch    |
+| `pnpm build`     | Build de produção            |
+| `pnpm start:prod`| Roda o build em produção     |
+| `pnpm test`      | Testes unitários             |
+| `pnpm test:cov`  | Testes com cobertura         |
+| `pnpm lint`      | ESLint                       |
+| `pnpm format`    | Prettier nos arquivos        |
+| `pnpm prisma migrate deploy` | Aplica migrações (produção) |
+| `pnpm prisma migrate dev`    | Migrações em desenvolvimento |
+
+---
+
+## Licença
+
+UNLICENSED (projeto privado).
